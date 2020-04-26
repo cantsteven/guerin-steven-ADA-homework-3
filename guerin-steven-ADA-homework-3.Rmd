@@ -157,6 +157,7 @@ bootslope <- d %>%
   # calculate the slope statistic
   calculate(stat = "slope")
 
+  
 #having trouble with specify, Maybe try to remove infer package 
 
 ```
