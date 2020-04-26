@@ -17,6 +17,7 @@ library(tidyverse)
 library(dplyr)
 library(broom)
 
+
 f <- "https://raw.githubusercontent.com/difiore/ADA-datasets/master/KamilarAndCooperData.csv"
 d <- read_csv(f, col_names = TRUE)
 
@@ -137,8 +138,26 @@ pint
 ```
 
 ## Challenge 2
-```{r pressure, echo=FALSE}
+```{r challenge2, echo=FALSE}
 
+#Challenge 2a-----------------------------------------------------
+
+rangemodel<- lm(log(HomeRange_km2) ~  log(Body_mass_female_mean), data=d)
+b0 <- rangemodel$coefficients[1]
+b0
+b1 <- rangemodel$coefficients[2]
+b1
+
+#Challenge 2b-----------------------------------------------------
+bootslope <- d %>%
+  # specify model
+  specify(log(HomeRange_km2) ~  log(Body_mass_female_mean) %>%
+  # generate bootstrap replicates
+  generate(reps = 1000, type = "bootstrap") %>%
+  # calculate the slope statistic
+  calculate(stat = "slope")
+
+#having trouble with specify, Maybe try to remove infer package 
 
 ```
 
