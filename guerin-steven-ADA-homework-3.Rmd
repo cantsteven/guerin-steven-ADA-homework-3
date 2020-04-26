@@ -14,12 +14,14 @@ knitr::opts_chunk$set(echo = TRUE)
 ```{r challenge 1}
 library(ggplot2)
 library(tidyverse)
+library(dplyr)
+library(broom)
 
 f <- "https://raw.githubusercontent.com/difiore/ADA-datasets/master/KamilarAndCooperData.csv"
 d <- read_csv(f, col_names = TRUE)
 
 
-#Challenge 1a
+#Challenge 1a-----------------------------------------------------
 #Untransformed Graph
 originalmodel<-lm(MaxLongevity_m ~ Brain_Size_Species_Mean,data=d)
 originalmodel
@@ -42,23 +44,102 @@ logmodelgraph<-ggplot(data=d,aes(x=log(Brain_Size_Species_Mean),y=log(MaxLongevi
 
 logmodelgraph
 
-#Challenge 1b
-#Original Model: beta1= 1.2; reject the null, accept the alternative hypothesis 
-#Log Model: beta1=0.2; reject the null, accept the alternative hypothesis 
+#Challenge 1b and c-----------------------------------------------------
+#Original Model: reject the null, accept the alternative hypothesis 
+b1 <- originalmodel$coefficients[2]
+b1
 
+confint<- predict(originalmodel, newdata=list(Brain_Size_Species_Mean=b1), interval="confidence", level=.90)
+confint
 
+#reject the null, accept the alternative hypothesis 
+#Log Model: reject the null, accept the alternative hypothesis 
+b1 <- logmodel$coefficients[2]
+b1
 
+confint<- predict(logmodel, newdata=list(Brain_Size_Species_Mean=b1), interval="confidence", level=.90)
+confint
 
+#original prediction, confidence intervals, and graph 
+alpha<-0.1
+b <- seq(from = 0, to = 500, by = 1)
+sd <- glance(originalmodel) %>% pull(sigma)
+df <- augment(originalmodel, newdata = data.frame(Brain_Size_Species_Mean = b)) %>%
+ mutate(
+    c.lwr = .fitted - qt(1 - alpha / 2, nrow(d) - 2) * .se.fit,
+    c.upr = .fitted + qt(1 - alpha / 2, nrow(d) - 2) * .se.fit
+  ) %>%
+  # add PI
+  mutate(
+    se.prediction = sqrt(sd^2 + .se.fit^2),
+    p.lwr = .fitted - qt(1 - alpha / 2, nrow(d) - 2) * se.prediction,
+    p.upr = .fitted + qt(1 - alpha / 2, nrow(d) - 2) * se.prediction
+  )
 
+originalmodelgraph<-ggplot(data=d,aes(x=Brain_Size_Species_Mean,y=MaxLongevity_m))+
+  geom_point()+
+geom_line(
+  data = df, aes(x=Brain_Size_Species_Mean, y = c.lwr, color = "blue"))+
+geom_line(
+  data = df, aes(x=Brain_Size_Species_Mean, y = c.upr,color = "blue"))+
+geom_line(
+  data = df, aes(x=Brain_Size_Species_Mean, y = p.lwr,color = "red"))+
+geom_line(
+  data = df, aes(x=Brain_Size_Species_Mean, y = p.upr,color = "red"))+
+scale_color_discrete(name = "Lines", labels = c("90% Confidence Intervals", "90% Prediction Intervals"))
+
+originalmodelgraph
+
+#log prediction, confidence intervals, and graph 
+alpha<-0.1
+b <- seq(from = 0, to = 500, by = 1)
+sd <- glance(logmodel) %>% pull(sigma)
+df <- augment(logmodel, newdata = data.frame(Brain_Size_Species_Mean = b)) %>%
+ mutate(
+    c.lwr = .fitted - qt(1 - alpha / 2, nrow(d) - 2) * .se.fit,
+    c.upr = .fitted + qt(1 - alpha / 2, nrow(d) - 2) * .se.fit
+  ) %>%
+  # add PI
+  mutate(
+    se.prediction = sqrt(sd^2 + .se.fit^2),
+    p.lwr = .fitted - qt(1 - alpha / 2, nrow(d) - 2) * se.prediction,
+    p.upr = .fitted + qt(1 - alpha / 2, nrow(d) - 2) * se.prediction
+  )
+
+logmodelgraph<-ggplot(data=d,aes(x=log(Brain_Size_Species_Mean),y=log(MaxLongevity_m)))+
+  geom_point()+
+geom_line(
+  data = df, aes(x=log(Brain_Size_Species_Mean), y = c.lwr, color = "blue"))+
+geom_line(
+  data = df, aes(x=log(Brain_Size_Species_Mean), y = c.upr,color = "blue"))+
+geom_line(
+  data = df, aes(x=log(Brain_Size_Species_Mean), y = p.lwr,color = "red"))+
+geom_line(
+  data = df, aes(x=log(Brain_Size_Species_Mean), y = p.upr,color = "red"))+
+scale_color_discrete(name = "Lines", labels = c("90% Confidence Intervals", "90% Prediction Intervals"))
+
+logmodelgraph
+
+#Challenge 1d-----------------------------------------------------
+#original model 
+pint<- predict(originalmodel, newdata=list(Brain_Size_Species_Mean=750), interval="prediction", level=.90)
+pint
+
+#log model 
+pint<- predict(logmodel, newdata=list(Brain_Size_Species_Mean=750), interval="prediction", level=.90)
+pint
+
+#This data point is way outside the range of values given in the dataset, and I'm assuming it's probably good to be skeptical of making estimates like this. I would still trust the value though. 
+
+#Challenge 1e-----------------------------------------------------
+#I think the log transformed model is better. The original model had too many data points at the lower end of the range of brain sizes, the log model spreads the data out more and makes it easier to see what the data looks like. 
 
 ```
 
-## Including Plots
-
-You can also embed plots, for example:
-
+## Challenge 2
 ```{r pressure, echo=FALSE}
-plot(pressure)
+
+
 ```
 
 Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
