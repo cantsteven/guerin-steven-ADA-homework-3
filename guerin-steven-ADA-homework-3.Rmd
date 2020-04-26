@@ -16,6 +16,7 @@ library(ggplot2)
 library(tidyverse)
 library(dplyr)
 library(broom)
+library(infer)
 
 
 f <- "https://raw.githubusercontent.com/difiore/ADA-datasets/master/KamilarAndCooperData.csv"
@@ -148,16 +149,26 @@ b0
 b1 <- rangemodel$coefficients[2]
 b1
 
+
 #Challenge 2b-----------------------------------------------------
-bootslope <- d %>%
+#adding the log values to the original data frame 
+d <- mutate(d, LHR = log(HomeRange_km2))
+d <- mutate(d, LBM = log(Body_mass_female_mean))
+
+#bootstrapping 
+boot.sample <- d %>%
   # specify model
-  specify(log(HomeRange_km2) ~  log(Body_mass_female_mean) %>%
+  specify(LBM ~ LHR) %>%
   # generate bootstrap replicates
   generate(reps = 1000, type = "bootstrap") %>%
   # calculate the slope statistic
-  calculate(stat = "slope")
-
+  calculate(stat = "slope") 
   
+boot.sample
+
+
+
+
 #having trouble with specify, Maybe try to remove infer package 
 
 ```
