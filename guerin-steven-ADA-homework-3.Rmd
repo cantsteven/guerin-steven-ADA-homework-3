@@ -306,7 +306,7 @@ output
 ```
 
 ```{r challenge3 output, echo=FALSE}
-#running models 
+
 boot_lm(d = d, model = "logHR ~ logBM")
 boot_lm(d = d, model = "logDL ~ logBM")
 boot_lm(d = d, model = "logHR ~ logBM + MeanGroupSize")
